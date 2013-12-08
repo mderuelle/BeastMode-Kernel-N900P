@@ -455,6 +455,7 @@ static void update_sampling_rate(unsigned int new_rate)
 				     = max(new_rate, min_sampling_rate);
 
 	mutex_lock(&dbs_mutex);
+	get_online_cpus();
 	for_each_online_cpu(cpu) {
 		struct cpufreq_policy *policy;
 		struct cpu_dbs_info_s *dbs_info;
@@ -491,6 +492,7 @@ static void update_sampling_rate(unsigned int new_rate)
 		mutex_unlock(&dbs_info->timer_mutex);
 	}
 	mutex_unlock(&dbs_mutex);
+	put_online_cpus();
 }
 
 static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
@@ -695,8 +697,8 @@ static ssize_t store_powersave_bias(struct kobject *a, struct attribute *b,
 
 	dbs_tuners_ins.powersave_bias = input;
 
-	mutex_lock(&dbs_mutex);
 	get_online_cpus();
+	mutex_lock(&dbs_mutex);
 
 	if (!bypass) {
 		if (reenable_timer) {
@@ -772,8 +774,8 @@ skip_this_cpu_bypass:
 		}
 	}
 
-	put_online_cpus();
 	mutex_unlock(&dbs_mutex);
+	put_online_cpus();
 
 	return count;
 }
@@ -962,7 +964,7 @@ static ssize_t store_step_up_early_hispeed(struct kobject *a,
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
-	if (ret != 1 || input > 2265600 ||
+	if (ret != 1 || input > 2342400 ||
 			input < 0) {
 		return -EINVAL;
 	}
@@ -977,7 +979,7 @@ static ssize_t store_step_up_interim_hispeed(struct kobject *a,
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
-	if (ret != 1 || input > 2265600 ||
+	if (ret != 1 || input > 2342400 ||
 			input < 0) {
 		return -EINVAL;
 	}
@@ -1810,7 +1812,28 @@ static void dbs_input_disconnect(struct input_handle *handle)
 }
 
 static const struct input_device_id dbs_ids[] = {
-	{ .driver_info = 1 },
+  /* multi-touch touchscreen */
+  {
+    .flags = INPUT_DEVICE_ID_MATCH_EVBIT |
+      INPUT_DEVICE_ID_MATCH_ABSBIT,
+    .evbit = { BIT_MASK(EV_ABS) },
+    .absbit = { [BIT_WORD(ABS_MT_POSITION_X)] =
+      BIT_MASK(ABS_MT_POSITION_X) |
+      BIT_MASK(ABS_MT_POSITION_Y) },
+  },
+  /* touchpad */
+  {
+    .flags = INPUT_DEVICE_ID_MATCH_KEYBIT |
+      INPUT_DEVICE_ID_MATCH_ABSBIT,
+    .keybit = { [BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH) },
+    .absbit = { [BIT_WORD(ABS_X)] =
+      BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) },
+  },
+  /* Keypad */
+  {
+   .flags = INPUT_DEVICE_ID_MATCH_EVBIT,
+    .evbit = { BIT_MASK(EV_KEY) },
+  },
 	{ },
 };
 

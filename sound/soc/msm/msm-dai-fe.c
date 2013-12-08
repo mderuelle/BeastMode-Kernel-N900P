@@ -67,7 +67,8 @@ static struct snd_soc_dai_driver msm_fe_dais[] = {
 			.aif_name = "MM_UL1",
 			.rates = (SNDRV_PCM_RATE_8000_48000|
 					SNDRV_PCM_RATE_KNOT),
-			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+			.formats = (SNDRV_PCM_FMTBIT_S16_LE |
+				    SNDRV_PCM_FMTBIT_S24_LE),
 			.channels_min = 1,
 			.channels_max = 4,
 			.rate_min =     8000,
@@ -763,3 +764,4 @@ module_exit(msm_fe_dai_exit);
 /* Module information */
 MODULE_DESCRIPTION("MSM Frontend DAI driver");
 MODULE_LICENSE("GPL v2");
+

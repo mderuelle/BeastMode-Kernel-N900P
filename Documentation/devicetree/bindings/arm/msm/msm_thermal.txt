@@ -98,7 +98,7 @@ Example:
 
 		qcom,vdd-apps-rstr{
 			qcom,vdd-rstr-reg = "vdd_apps";
-			qcom,levels = <1881600 1958400 2265600>;
+			qcom,levels = <1881600 1958400 2419200>;
 			qcom,freq-req;
 		};
 	};
